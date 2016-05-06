@@ -14,7 +14,12 @@ class ArtificialNeuralNetwork():
     
     Description : A flexible multi-layer neural network model in Python.
     """
-
+    
+    def __init__(self, layers=1, nodes=3):
+        self.layers = layers
+        self.nodes = nodes
+    
+        
 # Calculate the loss of your model
 def calculate_loss(model):
     """Function to calculate the (log) loss of the in-sample predictions of neural network.
