@@ -8,9 +8,11 @@ import pandas as pd
 
 class ArtificialNeuralNetwork():
     """
-    Author  : Cornelis Vletter
-    Date    : 06 May 2016
-    Version : 0.1
+    Author      : Cornelis Vletter
+    Date        : 06 May 2016
+    Version     : 0.1
+    
+    Description : A flexible multi-layer neural network model in Python.
     """
 
 # Calculate the loss of your model
