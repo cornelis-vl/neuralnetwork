@@ -18,19 +18,26 @@ class ArtificialNeuralNetwork():
     def __init__(self, hid_lay=2, num_nodes=[3, 2]):
         self.hid_lay = hid_lay
         self.num_nodes = num_nodes
+        self.dim_check = hid_lay == len(num_nodes)
+        
+        print "Artificial Neural Network initialized with " \
+        "{0} hidden layers. Nodes for each layer are {1}," \
+        " respectively.".format(hid_lay, num_nodes)
     
-    def build_params(input_layer, target):
+    def build_params(self, input_layer, target):
         obs, input_nodes = np.shape(input_layer)
         classes = np.unique(target)
         num_classes = len(classes)
-        build_check = len(self.hid_lay) = self.num_nodes
+        build_check = self.dim_check
+        params = {}
+        
         if build_check:
             for h in range(0,self.hid_lay+1):
                 if h == 0:
                     in_nodes = input_nodes
                     out_nodes = self.num_nodes[h]
 
-                elif h == max(self.hid_lay):
+                elif h == self.hid_lay:
                     in_nodes = self.num_nodes[h-1]
                     out_nodes = num_classes
 
@@ -42,10 +49,15 @@ class ArtificialNeuralNetwork():
                     h,
                     in_nodes,
                     out_nodes)
-                
-                exec "b_{0} = np.zeros(1, {1})".format(
+
+                exec "b_{0} = np.zeros({1})".format(
                     h,
                     out_nodes)
+
+                exec "params['W_{0}'] = W_{0}".format(h)
+                exec "params['b_{0}'] = b_{0}".format(h)
+                
+            return params
             
         else:
             print "The nodes for each layer are not defined." \
@@ -53,10 +65,10 @@ class ArtificialNeuralNetwork():
                   "for {n_nodes} layer.".format(
                     n_lay=self.hid_lay,
                     n_nodes=len(self.num_nodes))
-            break
-    
-            
- 
+
+
+ann = ArtificialNeuralNetwork()
+pars = ann.build_params(X,y)
 
 #define labels and input layer size   
     
