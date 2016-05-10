@@ -15,11 +15,47 @@ class ArtificialNeuralNetwork():
     Description : A flexible multi-layer neural network model in Python.
     """
     
-    def __init__(self, layers=1, nodes=3):
-        self.layers = layers
-        self.nodes = nodes
+    def __init__(self, hid_lay=2, num_nodes=[3, 2]):
+        self.hid_lay = hid_lay
+        self.num_nodes = num_nodes
     
-        
+    def build_params(input_layer, target):
+        obs, input_nodes = np.shape(input_layer)
+        classes = np.unique(target)
+        num_classes = len(classes)
+        build_check = len(self.hid_lay) = self.num_nodes
+        if build_check:
+            for h in range(0,self.hid_lay+1):
+                if h == 0:
+                    in_nodes = input_nodes
+                    out_nodes = self.num_nodes[h]
+
+                elif h == max(self.hid_lay):
+                    in_nodes = self.num_nodes[h-1]
+                    out_nodes = num_classes
+
+                else:
+                    in_nodes = self.num_nodes[h-1]
+                    out_nodes = self.num_nodes[h]
+
+                exec "W_{0} = np.random.randn({1}, {2})".format(
+                    h,
+                    in_nodes,
+                    out_nodes)
+                
+                exec "b_{0} = np.zeros(1, {1})".format(
+                    h,
+                    out_nodes)
+            
+        else:
+            print "The nodes for each layer are not defined." \
+                  "I count {n_lay} layers, but nodes are only defined" \
+                  "for {n_nodes} layer.".format(
+                    n_lay=self.hid_lay,
+                    n_nodes=len(self.num_nodes))
+            break
+    
+            
  
 
 #define labels and input layer size   

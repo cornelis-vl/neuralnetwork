@@ -5,7 +5,7 @@ nrows, ncols = np.shape(X)
 ncols += 1
 arc = 1
 nodes = 2
-labels = 4
+labels = 2
 
 np.zeros(nrows)
 
@@ -22,7 +22,13 @@ a2 = np.ones((nrows, nodes+1))
 a2[:,1:nodes+1] = np.tanh(z2)
 
 z3 = np.dot(a2, theta2)
-a3 = np.tanh(z3)
+a3 = np.exp(z3)
+probs = a3 / np.sum(a3, axis=1, keepdims=True)
+
+
+
+
+
 
 #backward propagation
 
