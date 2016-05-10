@@ -8,8 +8,8 @@ import pandas as pd
 
 class ArtificialNeuralNetwork():
     """
-    Author      : Cornelis Vletter
-    Date        : 06 May 2016
+    Author      : Cornelis V.
+    Date        : 10 May 2016
     Version     : 0.1
     
     Description : A flexible multi-layer neural network model in Python.
