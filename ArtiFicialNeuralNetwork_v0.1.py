@@ -6,7 +6,7 @@ import pandas as pd
 
 # FUNCTIONS
 
-class ArtificialNeuralNetwork():
+class ANN():
     """
     Author      : Cornelis V.
     Date        : 10 May 2016
@@ -60,14 +60,14 @@ class ArtificialNeuralNetwork():
             return params
             
         else:
-            print "The nodes for each layer are not defined." \
-                  "I count {n_lay} layers, but nodes are only defined" \
+            print "The nodes for each layer are not defined. " \
+                  "I count {n_lay} layers, but nodes are only defined " \
                   "for {n_nodes} layer.".format(
                     n_lay=self.hid_lay,
                     n_nodes=len(self.num_nodes))
 
 
-ann = ArtificialNeuralNetwork()
+ann = ANN()
 pars = ann.build_params(X,y)
 
 #define labels and input layer size   
