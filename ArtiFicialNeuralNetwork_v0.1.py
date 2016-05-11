@@ -25,6 +25,11 @@ class ANN():
         " respectively.".format(hid_lay, num_nodes)
     
     def build_params(self, input_layer, target):
+        """
+        Function to build the neural network model. Gives back a dict,
+        which consists of the required parameters and an initial guess.
+        """
+        
         obs, input_nodes = np.shape(input_layer)
         classes = np.unique(target)
         num_classes = len(classes)
@@ -66,6 +71,17 @@ class ANN():
                     n_lay=self.hid_lay,
                     n_nodes=len(self.num_nodes))
 
+
+    def loss(self, features, dependent_var, loss_func="log-loss"):
+        """
+        Determine the loss of the model.
+        """
+        starting_params = build_params(input_layer=features, 
+                                       target=dependent_var)
+                                  
+        #Forward Propagation
+        
+                                  
 
 ann = ANN()
 pars = ann.build_params(X,y)
