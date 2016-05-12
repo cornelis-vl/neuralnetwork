@@ -29,7 +29,7 @@ class ANN():
         Function to build the neural network model. Gives back a dict,
         which consists of the required parameters and an initial guess.
         """
-        
+
         obs, input_nodes = np.shape(input_layer)
         classes = np.unique(target)
         num_classes = len(classes)
@@ -81,16 +81,22 @@ class ANN():
                                   
         #Forward Propagation
         
-        output_z = {}
+        output_a = {}
         a_0 = features
         for l in range(0, self.hid_lay+1):
-            exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
-            exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
-            exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
-            exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
-            exec "output_z['z_{n_lay}'] = z_{n_lay}".format(n_lay=l+1)
+            if l != self.hid_lay:
+                exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
+                exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
+                exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
+                exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
+                exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
+                
+            elif l == self.hid_lay+1:
+                exec "a_{n_lay} = np.exp(z_{n_lay})".format(n_lay=l+1)
+                exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
+                exec "pred_prob = a_{n_lay} / np.sum(a_{n_lay}, axis=1, keepdims=True)".format(n_lay=l+1)
             
-        return output_z    
+        return output_a, pred_prob    
 
 ann = ANN()
 pars = ann.build_params(X,y)
