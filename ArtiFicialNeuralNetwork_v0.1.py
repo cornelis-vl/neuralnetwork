@@ -51,13 +51,13 @@ class ANN():
                     out_nodes = self.num_nodes[h]
 
                 exec "W_{0} = np.random.randn({1}, {2})".format(
-                    h,
-                    in_nodes,
-                    out_nodes)
+                     h,
+                     in_nodes,
+                     out_nodes)
 
                 exec "b_{0} = np.zeros({1})".format(
-                    h,
-                    out_nodes)
+                     h,
+                     out_nodes)
 
                 exec "params['W_{0}'] = W_{0}".format(h)
                 exec "params['b_{0}'] = b_{0}".format(h)
@@ -68,8 +68,8 @@ class ANN():
             print "The nodes for each layer are not defined. " \
                   "I count {n_lay} layers, but nodes are only defined " \
                   "for {n_nodes} layer.".format(
-                    n_lay=self.hid_lay,
-                    n_nodes=len(self.num_nodes))
+                  n_lay=self.hid_lay,
+                  n_nodes=len(self.num_nodes))
 
 
     def loss(self, features, dependent_var, loss_func="log-loss"):
@@ -83,24 +83,26 @@ class ANN():
         
         output_a = {}
         a_0 = features
-        for l in range(0, self.hid_lay+1):
-            if l != self.hid_lay:
-                exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
-                exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
-                exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
-                exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
-                exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
-                
-            elif l == self.hid_lay+1:
-                exec "a_{n_lay} = np.exp(z_{n_lay})".format(n_lay=l+1)
-                exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
-                exec "pred_prob = a_{n_lay} / np.sum(a_{n_lay}, axis=1, keepdims=True)".format(n_lay=l+1)
+        for l in range(0, self.hid_lay):
+            exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
+            exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
+            exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
+            exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
+            exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
+        
+        
+        exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(
+             fin_lay=self.hid_lay,
+             penu_lay=self.hid_lay-1)
+        exec "a_{fin_lay} = np.exp(z_{fin_lay})".format(fin_lay=self.hid_lay)
+        exec "output_a['a_{fin_lay}'] = a_{fin_lay}".format(fin_lay=self.hid_lay)
+        exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
             
         return output_a, pred_prob    
 
 ann = ANN()
 pars = ann.build_params(X,y)
-est_z = ann.loss(features=X,dependent_var=y)
+est_a, proba = ann.loss(features=X,dependent_var=y)
 
 #define labels and input layer size   
     
