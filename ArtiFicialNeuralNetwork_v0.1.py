@@ -9,8 +9,8 @@ import pandas as pd
 class ANN():
     """
     Author      : Cornelis V.
-    Date        : 10 May 2016
-    Version     : 0.1
+    Date        : 13 May 2016
+    Version     : 0.2
     
     Description : A flexible multi-layer neural network model in Python.
     """
@@ -18,72 +18,59 @@ class ANN():
     def __init__(self, hid_lay=2, num_nodes=[3, 2]):
         self.hid_lay = hid_lay
         self.num_nodes = num_nodes
-        self.dim_check = hid_lay == len(num_nodes)
         
         print "Artificial Neural Network initialized with " \
-        "{0} hidden layers. Nodes for each layer are {1}," \
-        " respectively.".format(hid_lay, num_nodes)
-    
+              "{n_lay} hidden layers. Nodes for each layer are {n_nodes}," \
+              " respectively.".format(
+                n_lay=self.hid_lay, 
+                n_nodes=self.num_nodes)
+
     def build_params(self, input_layer, target):
         """
-        Function to build the neural network model. Gives back a dict,
-        which consists of the required parameters and an initial guess.
+        Function to build the neural network model. Gives back a dict, which
+        consists of the required parameters and an initial guess.
         """
 
         obs, input_nodes = np.shape(input_layer)
         classes = np.unique(target)
         num_classes = len(classes)
-        build_check = self.dim_check
         params = {}
         
-        if build_check:
-            for h in range(0,self.hid_lay+1):
-                if h == 0:
-                    in_nodes = input_nodes
-                    out_nodes = self.num_nodes[h]
+        for h in range(0, self.hid_lay+1):
+            if h == 0:
+                in_nodes = input_nodes
+                out_nodes = self.num_nodes[h]
 
-                elif h == self.hid_lay:
-                    in_nodes = self.num_nodes[h-1]
-                    out_nodes = num_classes
+            elif h == self.hid_lay:
+                in_nodes = self.num_nodes[h-1]
+                out_nodes = num_classes
 
-                else:
-                    in_nodes = self.num_nodes[h-1]
-                    out_nodes = self.num_nodes[h]
+            else:
+                in_nodes = self.num_nodes[h-1]
+                out_nodes = self.num_nodes[h]
 
-                exec "W_{0} = np.random.randn({1}, {2})".format(
-                     h,
-                     in_nodes,
-                     out_nodes)
+            exec "W_{0} = np.random.randn({1}, {2})".format(h, in_nodes, out_nodes)
 
-                exec "b_{0} = np.zeros({1})".format(
-                     h,
-                     out_nodes)
+            exec "b_{0} = np.zeros({1})".format(h, out_nodes)
 
-                exec "params['W_{0}'] = W_{0}".format(h)
-                exec "params['b_{0}'] = b_{0}".format(h)
+            exec "params['W_{0}'] = W_{0}".format(h)
+            exec "params['b_{0}'] = b_{0}".format(h)
                 
-            return params
-            
-        else:
-            print "The nodes for each layer are not defined. " \
-                  "I count {n_lay} layers, but nodes are only defined " \
-                  "for {n_nodes} layer.".format(
-                  n_lay=self.hid_lay,
-                  n_nodes=len(self.num_nodes))
-
+        return params
 
     def loss(self, features, dependent_var, loss_func="log-loss"):
         """
         Determine the loss of the model.
         """
         starting_params = self.build_params(input_layer=features, 
-                                       target=dependent_var)
+                                            target=dependent_var)
                                   
         #Forward Propagation
-        
         output_a = {}
         a_0 = features
-        for l in range(0, self.hid_lay):
+
+        #Put into a for-loop, to facilitate flexibility in setting the number of layers
+        for l in range(self.hid_lay):
             exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
             exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
             exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
@@ -91,18 +78,25 @@ class ANN():
             exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
         
         
-        exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(
-             fin_lay=self.hid_lay,
-             penu_lay=self.hid_lay-1)
+        #Take the last layer out of the loop, need specific handling
+        exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(fin_lay=self.hid_lay, penu_lay=self.hid_lay-1)
         exec "a_{fin_lay} = np.exp(z_{fin_lay})".format(fin_lay=self.hid_lay)
         exec "output_a['a_{fin_lay}'] = a_{fin_lay}".format(fin_lay=self.hid_lay)
         exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
-            
-        return output_a, pred_prob    
+        
+        if loss_func == "log-loss":
+            model_loss = np.sum(dependent_var.dot(-np.log(pred_prob)))
+
+        return model_loss    
+
+np.random.seed(0)
+X, y = sklearn.datasets.make_moons(200, noise=0.20)
+y = np.zeros(200)
+y[1] = 1
 
 ann = ANN()
 pars = ann.build_params(X,y)
-est_a, proba = ann.loss(features=X,dependent_var=y)
+est_a, proba, loss = ann.loss(features=X,dependent_var=y)
 
 #define labels and input layer size   
     
