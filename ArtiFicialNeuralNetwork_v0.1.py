@@ -31,8 +31,8 @@ class ANN():
         consists of the required parameters and an initial guess.
         """
 
-        obs, input_nodes = np.shape(input_layer)
-        classes = np.unique(target)
+        self.obs, input_nodes = np.shape(input_layer)
+        self.classes = np.unique(target)
         num_classes = len(classes)
         params = {}
         
@@ -82,12 +82,71 @@ class ANN():
         exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(fin_lay=self.hid_lay, penu_lay=self.hid_lay-1)
         exec "a_{fin_lay} = np.exp(z_{fin_lay})".format(fin_lay=self.hid_lay)
         exec "output_a['a_{fin_lay}'] = a_{fin_lay}".format(fin_lay=self.hid_lay)
+        
+        #Apply Soft-max x
         exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
         
         if loss_func == "log-loss":
             model_loss = np.sum(dependent_var.dot(-np.log(pred_prob)))
 
-        return model_loss    
+        return model_loss  
+        
+        
+        def optimize_weights(self, weights, features, dependent_var):
+
+            starting_params = self.build_params(input_layer=features, 
+                                    target=dependent_var)
+
+            while error > x:
+
+            #Forward Propagation
+            output_a = {}
+            a_0 = features
+
+            #Put into a for-loop, to facilitate flexibility in setting the number of layers
+            for l in range(self.hid_lay):
+                exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
+                exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
+                exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
+                exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
+                exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
+            
+            
+            #Take the last layer out of the loop, need specific handling
+            exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(fin_lay=self.hid_lay, penu_lay=self.hid_lay-1)
+            exec "a_{fin_lay} = np.exp(z_{fin_lay})".format(fin_lay=self.hid_lay)
+            exec "output_a['a_{fin_lay}'] = a_{fin_lay}".format(fin_lay=self.hid_lay)
+            
+            #Apply Soft-max
+            exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
+
+
+            #Backward Propagation
+            target_rsp = np.repeat(target, num_classes, axis=0)
+            target_rsp = np.resize(target_rsp, (obs, num_classes))
+
+            dtanh = lambda x: 1 - np.tanh(x)**2 # derivative hyper tangent
+
+            dL_dp = pred_prob - target_rsp # final delta
+            dz1_dW1 = features
+            dz_db = 1
+            dzn_dm = lambda z_m, w_n: w * dtanh(z) # n > m, n is the deeper hidden layer
+
+            for l in range(self.hid_lay+1,1,-1):
+
+
+
+        # Backpropagation
+        delta3 = probs
+        delta3[range(num_examples), y] -= 1
+        dW2 = (a1.T).dot(delta3)
+        db2 = np.sum(delta3, axis=0, keepdims=True)
+        delta2 = delta3.dot(W2.T) * (1 - np.power(a1, 2))
+        dW1 = np.dot(X.T, delta2)
+        db1 = np.sum(delta2, axis=0)
+
+        target_rsp = np.repeat(target, num_classes, axis=0)
+        target_rsp = np.resize(target_rsp, (obs, num_classes))
 
 np.random.seed(0)
 X, y = sklearn.datasets.make_moons(200, noise=0.20)
