@@ -33,7 +33,7 @@ class ANN():
 
         self.obs, input_nodes = np.shape(input_layer)
         self.classes = np.unique(target)
-        num_classes = len(classes)
+        num_classes = len(self.classes)
         params = {}
         
         for h in range(0, self.hid_lay+1):
@@ -62,9 +62,10 @@ class ANN():
         """
         Determine the loss of the model.
         """
+        
         starting_params = self.build_params(input_layer=features, 
                                             target=dependent_var)
-                                  
+
         #Forward Propagation
         output_a = {}
         a_0 = features
@@ -89,15 +90,15 @@ class ANN():
         if loss_func == "log-loss":
             model_loss = np.sum(dependent_var.dot(-np.log(pred_prob)))
 
-        return model_loss  
+        return model_loss, output_a, pred_prob  
         
         
-        def optimize_weights(self, weights, features, dependent_var):
+    def optimize_weights(self, weights, features, dependent_var):
 
             starting_params = self.build_params(input_layer=features, 
                                     target=dependent_var)
 
-            while error > x:
+            # while error > x:
 
             #Forward Propagation
             output_a = {}
@@ -130,9 +131,12 @@ class ANN():
             dL_dp = pred_prob - target_rsp # final delta
             dz1_dW1 = features
             dz_db = 1
-            dzn_dm = lambda z_m, w_n: w * dtanh(z) # n > m, n is the deeper hidden layer
+            dzn_dzm = lambda z_m, w_n: w * dtanh(z) # n > m, n is the deeper hidden layer
 
-            for l in range(self.hid_lay+1,1,-1):
+            for l in range(self.hid_lay+1, 0, -1):
+                #hidden layer derivatives
+                exec "dz{n}_dz{m} = dzn_dzm(z_{m}, w_{n})".format(n=l, m=l-1)
+                
 
 
 
@@ -155,10 +159,11 @@ y[1] = 1
 
 ann = ANN()
 pars = ann.build_params(X,y)
-est_a, proba, loss = ann.loss(features=X,dependent_var=y)
+loss, pars, probs = ann.loss(features=X,dependent_var=y)
 
 #define labels and input layer size   
-    
+
+##### OLD MODEL #####
     
         
 # Calculate the loss of your model
