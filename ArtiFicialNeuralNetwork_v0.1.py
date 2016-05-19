@@ -9,8 +9,8 @@ import pandas as pd
 class ANN():
     """
     Author      : Cornelis V.
-    Date        : 13 May 2016
-    Version     : 0.2
+    Date        : 19 May 2016
+    Version     : 0.3
     
     Description : A flexible multi-layer neural network model in Python.
     """
@@ -121,36 +121,38 @@ class ANN():
             #Apply Soft-max
             exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
 
-
-            #Backward Propagation
+            # Backward Propagation
             target_rsp = np.repeat(target, num_classes, axis=0)
             target_rsp = np.resize(target_rsp, (obs, num_classes))
 
             dtanh = lambda x: 1 - np.tanh(x)**2 # derivative hyper tangent
 
-            dL_dp = pred_prob - target_rsp # final delta
-            dz1_dW1 = features
+            # Determine derivatives 
+            dL_dzfin = pred_prob - target_rsp # final delta
             dz_db = 1
             dzn_dzm = lambda z_m, w_n: w * dtanh(z) # n > m, n is the deeper hidden layer
+            exec "dz{n}_dz_{m} = 1".format(n=self.hid_lay+2, m=self.hid_lay+1)
+
 
             for l in range(self.hid_lay+1, 0, -1):
                 #hidden layer derivatives
                 exec "dz{n}_dz{m} = dzn_dzm(z_{m}, w_{n})".format(n=l, m=l-1)
-                
+                exec "dz{n}_dW{n} = a_{n}".format(n=l)
 
+                if l == self.hid_lay+1:
+                    temp = dL_dzfin
+                    exec "dL_db{n} = temp".format{n=l}
+                    exec "dL_dW{n} = temp*dz{n}_dW{n}".format(n=l)
 
+                else:
+                    exec "temp *= dz{n}_dz{m}".format(n=l+1, m=l)
+                    exec "dL_db{n} = temp".format(n=l)
+                    exec "dL_dW{n} = temp*dz{n}_dW{n}".format(n=l)
 
-        # Backpropagation
-        delta3 = probs
-        delta3[range(num_examples), y] -= 1
-        dW2 = (a1.T).dot(delta3)
-        db2 = np.sum(delta3, axis=0, keepdims=True)
-        delta2 = delta3.dot(W2.T) * (1 - np.power(a1, 2))
-        dW1 = np.dot(X.T, delta2)
-        db1 = np.sum(delta2, axis=0)
+                exec "temp = dL_dz3*dz{n}_dz{m}".format(n=l+1, m=l)
 
-        target_rsp = np.repeat(target, num_classes, axis=0)
-        target_rsp = np.resize(target_rsp, (obs, num_classes))
+                exec "dL_dW{n} = temp*"
+
 
 np.random.seed(0)
 X, y = sklearn.datasets.make_moons(200, noise=0.20)
