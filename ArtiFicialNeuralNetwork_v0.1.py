@@ -58,13 +58,10 @@ class ANN():
                 
         return params
 
-    def loss(self, features, dependent_var, loss_func="log-loss"):
+    def loss_calc(self, features, dependent_var, params, loss_func="log-loss"):
         """
         Determine the loss of the model.
         """
-        
-        starting_params = self.build_params(input_layer=features, 
-                                            target=dependent_var)
 
         #Forward Propagation
         output_a = {}
@@ -72,8 +69,8 @@ class ANN():
 
         #Put into a for-loop, to facilitate flexibility in setting the number of layers
         for l in range(self.hid_lay):
-            exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
-            exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
+            exec "W_{c_lay} = params.get('W_{c_lay}')".format(c_lay=l)
+            exec "b_{c_lay} = params.get('b_{c_lay}')".format(c_lay=l)
             exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
             exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
             exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
@@ -90,69 +87,74 @@ class ANN():
         if loss_func == "log-loss":
             model_loss = np.sum(dependent_var.dot(-np.log(pred_prob)))
 
-        return model_loss, output_a, pred_prob  
+        return model_loss 
         
         
-    def optimize_weights(self, weights, features, dependent_var):
+    def optimize_weights(self, weights={}, features, dependent_var, epsilon=0.01, rounds=100):
+            
+            if len(weights) == 0:
+                weights = self.build_params(input_layer=features, 
+                                            target=dependent_var)
 
-            starting_params = self.build_params(input_layer=features, 
-                                    target=dependent_var)
-
-            # while error > x:
-
-            #Forward Propagation
             output_a = {}
             a_0 = features
 
-            #Put into a for-loop, to facilitate flexibility in setting the number of layers
-            for l in range(self.hid_lay):
-                exec "W_{c_lay} = starting_params.get('W_{c_lay}')".format(c_lay=l)
-                exec "b_{c_lay} = starting_params.get('b_{c_lay}')".format(c_lay=l)
-                exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
-                exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
-                exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
-            
-            
-            #Take the last layer out of the loop, need specific handling
-            exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(fin_lay=self.hid_lay, penu_lay=self.hid_lay-1)
-            exec "a_{fin_lay} = np.exp(z_{fin_lay})".format(fin_lay=self.hid_lay)
-            exec "output_a['a_{fin_lay}'] = a_{fin_lay}".format(fin_lay=self.hid_lay)
-            
-            #Apply Soft-max
-            exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
-
-            # Backward Propagation
             target_rsp = np.repeat(target, num_classes, axis=0)
             target_rsp = np.resize(target_rsp, (obs, num_classes))
 
-            dtanh = lambda x: 1 - np.tanh(x)**2 # derivative hyper tangent
+            seq = 1
 
-            # Determine derivatives 
-            dL_dzfin = pred_prob - target_rsp # final delta
-            dz_db = 1
-            dzn_dzm = lambda z_m, w_n: w * dtanh(z) # n > m, n is the deeper hidden layer
-            exec "dz{n}_dz_{m} = 1".format(n=self.hid_lay+2, m=self.hid_lay+1)
+            ## GRADIENT DESCENT ## 
+            while seq <= 100:
+
+                #Put into a for-loop, to facilitate flexibility in setting the number of layers
+                for l in range(self.hid_lay):
+                    exec "W_{c_lay} = weights.get('W_{c_lay}')".format(c_lay=l)
+                    exec "b_{c_lay} = weights.get('b_{c_lay}')".format(c_lay=l)
+                    exec "z_{n_lay} = a_{c_lay}.dot(W_{c_lay}) + b_{c_lay}".format(c_lay=l, n_lay=l+1)
+                    exec "a_{n_lay} = np.tanh(z_{n_lay})".format(n_lay=l+1)
+                    exec "output_a['a_{n_lay}'] = a_{n_lay}".format(n_lay=l+1)
+                
+                
+                #Take the last layer out of the loop, need specific handling
+                exec "z_{fin_lay} = a_{penu_lay}.dot(W_{penu_lay}) + b_{penu_lay}".format(fin_lay=self.hid_lay, penu_lay=self.hid_lay-1)
+                exec "a_{fin_lay} = np.exp(z_{fin_lay})".format(fin_lay=self.hid_lay)
+                exec "output_a['a_{fin_lay}'] = a_{fin_lay}".format(fin_lay=self.hid_lay)
+                
+                #Apply Soft-max
+                exec "pred_prob = a_{fin_lay} / np.sum(a_{fin_lay}, axis=1, keepdims=True)".format(fin_lay=self.hid_lay)
+
+                #Backward Propagation
+                dtanh = lambda x: 1 - np.tanh(x)**2 # derivative hyper tangent
+
+                #Determine derivatives 
+                dL_dzfin = pred_prob - target_rsp # final delta
+                dz_db = 1
+                dzn_dzm = lambda z_m, w_n: w_n * dtanh(z_m) # n > m, n is the deeper hidden layer
+                exec "dz{n}_dz_{m} = 1".format(n=self.hid_lay+2, m=self.hid_lay+1)
 
 
-            for l in range(self.hid_lay+1, 0, -1):
-                #hidden layer derivatives
-                exec "dz{n}_dz{m} = dzn_dzm(z_{m}, w_{n})".format(n=l, m=l-1)
-                exec "dz{n}_dW{n} = a_{n}".format(n=l)
+                for l in range(self.hid_lay+1, 0, -1):
+                    #Hidden layer derivatives
+                    exec "dz{n}_dz{m} = dzn_dzm(z_{m}, w_{n})".format(n=l, m=l-1)
+                    exec "dz{n}_dW{n} = a_{n}".format(n=l)
 
-                if l == self.hid_lay+1:
-                    temp = dL_dzfin
-                    exec "dL_db{n} = temp".format{n=l}
-                    exec "dL_dW{n} = temp*dz{n}_dW{n}".format(n=l)
+                    if l == self.hid_lay+1:
+                        temp = dL_dzfin
+                        exec "dL_db{n} = temp".format{n=l}
+                        exec "dL_dW{n} = temp*dz{n}_dW{n}".format(n=l)
 
-                else:
-                    exec "temp *= dz{n}_dz{m}".format(n=l+1, m=l)
-                    exec "dL_db{n} = temp".format(n=l)
-                    exec "dL_dW{n} = temp*dz{n}_dW{n}".format(n=l)
+                    else:
+                        exec "temp *= dz{n}_dz{m}".format(n=l+1, m=l)
+                        exec "dL_db{n} = temp".format(n=l)
+                        exec "dL_dW{n} = temp*dz{n}_dW{n}".format(n=l)
 
-                exec "temp = dL_dz3*dz{n}_dz{m}".format(n=l+1, m=l)
-
-                exec "dL_dW{n} = temp*"
-
+                #Update weights
+                for h in range(0, self.hid_lay+1):
+                    exec "weights['W_{n}'] -= epsilon*dL_dW{n}".format(n=h)
+                    exec "weights['b_{n}'] -= epsilon*dL_db{n}".format(n=h)
+                
+                loss_i = self.loss_calc(features, dependent_var, params=weights)
 
 np.random.seed(0)
 X, y = sklearn.datasets.make_moons(200, noise=0.20)
@@ -161,7 +163,7 @@ y[1] = 1
 
 ann = ANN()
 pars = ann.build_params(X,y)
-loss, pars, probs = ann.loss(features=X,dependent_var=y)
+loss, pars, probs = ann.loss(features=X,dependent_var=y, params=pars)
 
 #define labels and input layer size   
 
